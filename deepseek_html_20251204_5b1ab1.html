@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ponto Digital - Controle de Jornada</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo i {
+            font-size: 2rem;
+        }
+
+        .user-info {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: 500;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 992px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .controls {
+            text-align: center;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 90%;
+            max-width: 300px;
+        }
+
+        .btn-start {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-pause {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .btn-stop {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-export {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .timer-display {
+            font-size: 3rem;
+            text-align: center;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 20px 0;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #eee;
+        }
+
+        .location-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .location-info i {
+            color: var(--secondary-color);
+            margin-right: 10px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .status-working {
+            background-color: rgba(39, 174, 96, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-paused {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--warning-color);
+        }
+
+        .status-off {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--danger-color);
+        }
+
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .records-table th, .records-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .records-table th {
+            background-color: #f8f9fa;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .records-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-start {
+            background-color: rgba(39, 174, 96, 0.2);
+            color: var(--success-color);
+        }
+
+        .badge-pause {
+            background-color: rgba(243, 156, 18, 0.2);
+            color: var(--warning-color);
+        }
+
+        .badge-stop {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--danger-color);
+        }
+
+        .map-container {
+            height: 300px;
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 15px;
+            border: 1px solid #ddd;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        .export-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .export-btn {
+            padding: 10px 20px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .export-btn:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .mobile-notice {
+            display: none;
+            background-color: rgba(52, 152, 219, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            .mobile-notice {
+                display: block;
+            }
+            
+            .btn {
+                width: 100%;
+                margin: 5px 0;
+            }
+            
+            .timer-display {
+                font-size: 2.2rem;
+            }
+            
+            header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-fingerprint"></i>
+                <div>
+                    <h1>Ponto Digital</h1>
+                    <p>Controle de jornada de trabalho</p>
+                </div>
+            </div>
+            <div class="user-info">
+                <i class="fas fa-user"></i>
+                <span id="user-name">Funcionário: João Silva</span>
+            </div>
+        </header>
+
+        <div class="mobile-notice">
+            <i class="fas fa-mobile-alt"></i>
+            <strong>Sistema otimizado para celular:</strong> Você pode registrar seu ponto diretamente do seu dispositivo móvel.
+        </div>
+
+        <div class="main-content">
+            <div class="left-column">
+                <div class="card controls">
+                    <h2 class="card-title"><i class="fas fa-clock"></i> Registro de Ponto</h2>
+                    
+                    <div class="status-indicator status-off" id="status-indicator">
+                        <i class="fas fa-power-off"></i>
+                        <span id="status-text">Fora do expediente</span>
+                    </div>
+                    
+                    <div class="timer-display" id="timer">00:00:00</div>
+                    
+                    <button class="btn btn-start" id="start-btn">
+                        <i class="fas fa-play-circle"></i> Iniciar Jornada
+                    </button>
+                    
+                    <button class="btn btn-pause" id="pause-btn" disabled>
+                        <i class="fas fa-pause-circle"></i> Pausa
+                    </button>
+                    
+                    <button class="btn btn-stop" id="stop-btn" disabled>
+                        <i class="fas fa-stop-circle"></i> Encerrar Jornada
+                    </button>
+                    
+                    <div class="location-info">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span id="location-text">Obtendo localização...</span>
+                    </div>
+                    
+                    <div class="map-container">
+                        <div id="map"></div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-file-export"></i> Exportar Relatório</h2>
+                    <p>Exporte seus registros para uma planilha:</p>
+                    
+                    <button class="btn btn-export" id="export-btn">
+                        <i class="fas fa-file-excel"></i> Exportar para Excel/CSV
+                    </button>
+                    
+                    <div class="export-options">
+                        <div class="export-btn" id="copy-data">
+                            <i class="fas fa-copy"></i> Copiar Dados
+                        </div>
+                        <div class="export-btn" id="print-data">
+                            <i class="fas fa-print"></i> Imprimir
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="right-column">
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-history"></i> Histórico de Registros</h2>
+                    <p>Registros de hoje: <strong id="today-date"></strong></p>
+                    
+                    <div style="overflow-x: auto;">
+                        <table class="records-table">
+                            <thead>
+                                <tr>
+                                    <th>Horário</th>
+                                    <th>Tipo</th>
+                                    <th>Localização</th>
+                                    <th>Duração</th>
+                                </tr>
+                            </thead>
+                            <tbody id="records-body">
+                                <!-- Registros serão inseridos aqui -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div style="margin-top: 20px; text-align: center;">
+                        <p id="total-hours">Total hoje: 0 horas</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-chart-bar"></i> Resumo da Semana</h2>
+                    <p>Horas trabalhadas nos últimos 7 dias:</p>
+                    <div id="week-chart" style="height: 200px; margin-top: 20px; display: flex; align-items: flex-end; justify-content: space-around; border-bottom: 2px solid #eee; padding-bottom: 10px;">
+                        <!-- Gráfico será gerado aqui -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Ponto Digital &copy; 2023 - Sistema de controle de jornada de trabalho</p>
+            <p>Este sistema registra sua localização para validação do ponto</p>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Variáveis globais
+        let timerInterval = null;
+        let startTime = null;
+        let elapsedTime = 0;
+        let isWorking = false;
+        let isPaused = false;
+        let currentSessionStart = null;
+        let records = [];
+        let map = null;
+        let marker = null;
+        let userLocation = null;
+
+        // Inicialização quando a página carrega
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar data de hoje
+            const today = new Date();
+            document.getElementById('today-date').textContent = today.toLocaleDateString('pt-BR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Carregar registros do localStorage
+            loadRecordsFromStorage();
+            
+            // Inicializar mapa
+            initMap();
+            
+            // Obter localização do usuário
+            getUserLocation();
+            
+            // Configurar eventos dos botões
+            document.getElementById('start-btn').addEventListener('click', startWork);
+            document.getElementById('pause-btn').addEventListener('click', pauseWork);
+            document.getElementById('stop-btn').addEventListener('click', stopWork);
+            document.getElementById('export-btn').addEventListener('click', exportToSpreadsheet);
+            document.getElementById('copy-data').addEventListener('click', copyDataToClipboard);
+            document.getElementById('print-data').addEventListener('click', printData);
+            
+            // Atualizar histórico e gráfico
+            updateRecordsTable();
+            updateWeekChart();
+        });
+
+        // Inicializar o mapa
+        function initMap() {
+            // Mapas do OpenStreetMap
+            map = L.map('map').setView([-23.5505, -46.6333], 13); // São Paulo como padrão
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Marcador padrão
+            marker = L.marker([-23.5505, -46.6333]).addTo(map)
+                .bindPopup('Localização padrão')
+                .openPopup();
+        }
+
+        // Obter localização do usuário
+        function getUserLocation() {
+            if (!navigator.geolocation) {
+                document.getElementById('location-text').textContent = 'Geolocalização não suportada pelo navegador';
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    userLocation = { lat, lng };
+                    
+                    // Atualizar mapa
+                    map.setView([lat, lng], 15);
+                    marker.setLatLng([lat, lng]).bindPopup('Sua localização atual').openPopup();
+                    
+                    // Buscar endereço aproximado
+                    getAddressFromCoordinates(lat, lng);
+                },
+                function(error) {
+                    console.error('Erro ao obter localização:', error);
+                    document.getElementById('location-text').textContent = 'Não foi possível obter a localização';
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+
+        // Obter endereço a partir das coordenadas
+        function getAddressFromCoordinates(lat, lng) {
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`)
+                .then(response => response.json())
+                .then(data => {
+                    const address = data.display_name || 'Localização desconhecida';
+                    document.getElementById('location-text').textContent = address.substring(0, 80) + (address.length > 80 ? '...' : '');
+                })
+                .catch(error => {
+                    console.error('Erro ao obter endereço:', error);
+                    document.getElementById('location-text').textContent = `Local: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                });
+        }
+
+        // Iniciar jornada de trabalho
+        function startWork() {
+            if (!userLocation) {
+                alert('Aguardando localização... Por favor, aguarde um momento e tente novamente.');
+                getUserLocation();
+                return;
+            }
+            
+            startTime = new Date();
+            isWorking = true;
+            isPaused = false;
+            currentSessionStart = new Date();
+            
+            // Atualizar interface
+            updateStatus('working');
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('pause-btn').disabled = false;
+            document.getElementById('stop-btn').disabled = false;
+            
+            // Iniciar timer
+            startTimer();
+            
+            // Registrar ponto
+            addRecord('start', 'Início da jornada');
+            
+            // Atualizar localização
+            getUserLocation();
+        }
+
+        // Pausar jornada
+        function pauseWork() {
+            if (!isWorking) return;
+            
+            if (!isPaused) {
+                // Iniciar pausa
+                isPaused = true;
+                document.getElementById('pause-btn').innerHTML = '<i class="fas fa-play-circle"></i> Retornar';
+                updateStatus('paused');
+                
+                // Registrar pausa
+                addRecord('pause', 'Pausa');
+                
+                // Parar temporariamente o timer
+                clearInterval(timerInterval);
+            } else {
+                // Retornar da pausa
+                isPaused = false;
+                document.getElementById('pause-btn').innerHTML = '<i class="fas fa-pause-circle"></i> Pausa';
+                updateStatus('working');
+                
+                // Registrar retorno
+                addRecord('start', 'Retorno da pausa');
+                
+                // Retomar timer
+                startTimer();
+            }
+            
+            // Atualizar localização
+            getUserLocation();
+        }
+
+        // Encerrar jornada
+        function stopWork() {
+            if (!isWorking) return;
+            
+            clearInterval(timerInterval);
+            isWorking = false;
+            isPaused = false;
+            
+            // Atualizar interface
+            updateStatus('off');
+            document.getElementById('start-btn').disabled = false;
+            document.getElementById('pause-btn').disabled = true;
+            document.getElementById('stop-btn').disabled = true;
+            document.getElementById('pause-btn').innerHTML = '<i class="fas fa-pause-circle"></i> Pausa';
+            
+            // Registrar saída
+            addRecord('stop', 'Fim da jornada');
+            
+            // Calcular tempo total
+            calculateTotalHours();
+            
+            // Atualizar localização
+            getUserLocation();
+        }
+
+        // Iniciar/atualizar timer
+        function startTimer() {
+            clearInterval(timerInterval);
+            
+            // Se estamos retomando de uma pausa, não resetar o elapsedTime
+            if (!currentSessionStart) {
+                currentSessionStart = new Date();
+            }
+            
+            timerInterval = setInterval(function() {
+                const now = new Date();
+                elapsedTime = now - currentSessionStart;
+                
+                // Atualizar display do timer
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        // Atualizar display do timer
+        function updateTimerDisplay() {
+            const totalSeconds = Math.floor(elapsedTime / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            
+            const timeString = 
+                String(hours).padStart(2, '0') + ':' + 
+                String(minutes).padStart(2, '0') + ':' + 
+                String(seconds).padStart(2, '0');
+            
+            document.getElementById('timer').textContent = timeString;
+        }
+
+        // Atualizar status na interface
+        function updateStatus(status) {
+            const indicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+            
+            indicator.className = 'status-indicator';
+            
+            switch(status) {
+                case 'working':
+                    indicator.classList.add('status-working');
+                    statusText.textContent = 'Em trabalho';
+                    break;
+                case 'paused':
+                    indicator.classList.add('status-paused');
+                    statusText.textContent = 'Em pausa';
+                    break;
+                case 'off':
+                    indicator.classList.add('status-off');
+                    statusText.textContent = 'Fora do expediente';
+                    break;
+            }
+        }
+
+        // Adicionar registro
+        function addRecord(type, description) {
+            const now = new Date();
+            const location = userLocation ? 
+                `${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}` : 
+                'Localização não disponível';
+            
+            const record = {
+                id: Date.now(),
+                time: now.toLocaleTimeString('pt-BR'),
+                date: now.toLocaleDateString('pt-BR'),
+                type: type,
+                description: description,
+                location: location,
+                timestamp: now.getTime()
+            };
+            
+            records.push(record);
+            saveRecordsToStorage();
+            updateRecordsTable();
+        }
+
+        // Atualizar tabela de registros
+        function updateRecordsTable() {
+            const tbody = document.getElementById('records-body');
+            tbody.innerHTML = '';
+            
+            // Filtrar registros de hoje
+            const today = new Date().toLocaleDateString('pt-BR');
+            const todayRecords = records.filter(record => record.date === today);
+            
+            if (todayRecords.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhum registro hoje</td></tr>';
+                return;
+            }
+            
+            // Ordenar por timestamp (mais recente primeiro)
+            todayRecords.sort((a, b) => b.timestamp - a.timestamp);
+            
+            // Adicionar registros à tabela
+            todayRecords.forEach(record => {
+                const row = document.createElement('tr');
+                
+                // Determinar badge
+                let badgeClass = '';
+                let badgeText = '';
+                
+                switch(record.type) {
+                    case 'start':
+                        badgeClass = 'badge-start';
+                        badgeText = 'Entrada';
+                        break;
+                    case 'pause':
+                        badgeClass = 'badge-pause';
+                        badgeText = 'Pausa';
+                        break;
+                    case 'stop':
+                        badgeClass = 'badge-stop';
+                        badgeText = 'Saída';
+                        break;
+                }
+                
+                row.innerHTML = `
+                    <td>${record.time}</td>
+                    <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                    <td>${record.location}</td>
+                    <td>${record.description}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+            
+            // Calcular total de horas
+            calculateTotalHours();
+        }
+
+        // Calcular total de horas trabalhadas hoje
+        function calculateTotalHours() {
+            const today = new Date().toLocaleDateString('pt-BR');
+            const todayRecords = records.filter(record => record.date === today);
+            
+            // Ordenar por timestamp
+            todayRecords.sort((a, b) => a.timestamp - b.timestamp);
+            
+            let totalMilliseconds = 0;
+            let sessionStart = null;
+            
+            // Calcular tempo entre início e pausa/saída
+            for (const record of todayRecords) {
+                if (record.type === 'start') {
+                    sessionStart = record.timestamp;
+                } else if ((record.type === 'pause' || record.type === 'stop') && sessionStart) {
+                    totalMilliseconds += (record.timestamp - sessionStart);
+                    sessionStart = null;
+                }
+            }
+            
+            // Se está trabalhando no momento, adicionar tempo até agora
+            if (isWorking && sessionStart && !isPaused) {
+                totalMilliseconds += (Date.now() - sessionStart);
+            }
+            
+            // Converter para horas, minutos, segundos
+            const totalSeconds = Math.floor(totalMilliseconds / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            
+            document.getElementById('total-hours').textContent = 
+                `Total hoje: ${hours}h ${minutes}m`;
+        }
+
+        // Atualizar gráfico da semana
+        function updateWeekChart() {
+            const chartContainer = document.getElementById('week-chart');
+            chartContainer.innerHTML = '';
+            
+            // Gerar dados fictícios para demonstração
+            const days = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+            
+            days.forEach(day => {
+                const barValue = Math.floor(Math.random() * 8) + 4; // Entre 4 e 12 horas
+                const maxHeight = 180; // Altura máxima do gráfico em pixels
+                const height = (barValue / 12) * maxHeight;
+                
+                const barContainer = document.createElement('div');
+                barContainer.style.display = 'flex';
+                barContainer.style.flexDirection = 'column';
+                barContainer.style.alignItems = 'center';
+                
+                const bar = document.createElement('div');
+                bar.style.width = '40px';
+                bar.style.height = `${height}px`;
+                bar.style.backgroundColor = barValue >= 8 ? '#27ae60' : '#3498db';
+                bar.style.borderRadius = '5px 5px 0 0';
+                bar.style.transition = 'height 0.5s';
+                
+                const label = document.createElement('div');
+                label.textContent = day;
+                label.style.marginTop = '5px';
+                label.style.fontSize = '0.9rem';
+                label.style.fontWeight = '600';
+                
+                const value = document.createElement('div');
+                value.textContent = `${barValue}h`;
+                value.style.fontSize = '0.8rem';
+                value.style.color = '#7f8c8d';
+                
+                barContainer.appendChild(bar);
+                barContainer.appendChild(value);
+                barContainer.appendChild(label);
+                chartContainer.appendChild(barContainer);
+            });
+        }
+
+        // Salvar registros no localStorage
+        function saveRecordsToStorage() {
+            localStorage.setItem('workRecords', JSON.stringify(records));
+        }
+
+        // Carregar registros do localStorage
+        function loadRecordsFromStorage() {
+            const storedRecords = localStorage.getItem('workRecords');
+            if (storedRecords) {
+                records = JSON.parse(storedRecords);
+            }
+        }
+
+        // Exportar para planilha
+        function exportToSpreadsheet() {
+            // Criar cabeçalhos
+            const headers = ['Data', 'Hora', 'Tipo', 'Descrição', 'Localização'];
+            
+            // Converter registros para formato CSV
+            let csvContent = headers.join(',') + '\n';
+            
+            records.forEach(record => {
+                const row = [
+                    record.date,
+                    record.time,
+                    record.type === 'start' ? 'Entrada' : record.type === 'pause' ? 'Pausa' : 'Saída',
+                    record.description,
+                    record.location
+                ];
+                
+                csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
+            });
+            
+            // Criar blob e link para download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `ponto_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.csv`;
+            link.click();
+            
+            // Limpar URL
+            setTimeout(() => URL.revokeObjectURL(url), 100);
+        }
+
+        // Copiar dados para a área de transferência
+        function copyDataToClipboard() {
+            const today = new Date().toLocaleDateString('pt-BR');
+            const todayRecords = records.filter(record => record.date === today);
+            
+            if (todayRecords.length === 0) {
+                alert('Não há registros para copiar hoje.');
+                return;
+            }
+            
+            let text = `Registros de ponto - ${today}\n\n`;
+            
+            todayRecords.forEach(record => {
+                const typeText = record.type === 'start' ? 'Entrada' : 
+                                record.type === 'pause' ? 'Pausa' : 'Saída';
+                text += `${record.time} - ${typeText}: ${record.description} (${record.location})\n`;
+            });
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Dados copiados para a área de transferência!');
+            });
+        }
+
+        // Imprimir dados
+        function printData() {
+            const printWindow = window.open('', '_blank');
+            const today = new Date().toLocaleDateString('pt-BR');
+            const todayRecords = records.filter(record => record.date === today);
+            
+            let htmlContent = `
+                <html>
+                <head>
+                    <title>Relatório de Ponto - ${today}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        h1 { color: #2c3e50; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Relatório de Ponto</h1>
+                    <p>Data: ${today}</p>
+                    <p>Funcionário: João Silva</p>
+            `;
+            
+            if (todayRecords.length > 0) {
+                htmlContent += `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Hora</th>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                                <th>Localização</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                todayRecords.forEach(record => {
+                    const typeText = record.type === 'start' ? 'Entrada' : 
+                                    record.type === 'pause' ? 'Pausa' : 'Saída';
+                    
+                    htmlContent += `
+                        <tr>
+                            <td>${record.time}</td>
+                            <td>${typeText}</td>
+                            <td>${record.description}</td>
+                            <td>${record.location}</td>
+                        </tr>
+                    `;
+                });
+                
+                htmlContent += `
+                        </tbody>
+                    </table>
+                `;
+            } else {
+                htmlContent += '<p>Nenhum registro encontrado para hoje.</p>';
+            }
+            
+            htmlContent += `
+                    <p style="margin-top: 30px;">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(htmlContent);
+            printWindow.document.close();
+            printWindow.print();
+        }
+    </script>
+</body>
+</html>
